@@ -1,0 +1,218 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+typedef struct Agenda agenda;
+struct Agenda{
+	char nome[50];
+	char email[50];
+	char telefone[50];
+	struct Agenda *prox;
+};
+
+agenda* aloca();
+agenda* info(agenda* contato);
+void mostra(agenda* contato);
+void adiciona(agenda* contato);
+void editar(agenda* contato);
+void excluir(agenda* contato);
+void excluir_agenda(agenda* contato);
+void maiuscula(char *nome);
+
+int tamanho = 0;
+
+int main(){
+
+	agenda *contato = (agenda*) malloc(sizeof(agenda));
+	int op;
+
+	do{
+		printf("Escolha as opcao abaixo:\n");
+		printf("1 - Adicionar contato:\n");
+		printf("2 - Editar contato:\n");
+		printf("3 - Excluir contato:\n");
+		printf("4 - Excluir agenda:\n");
+		printf("5 - Mostrar agenda:\n");
+		printf("6 - Sair:\n");\
+		printf("Opção: ");
+		scanf("%d", &op);
+		while(op < 0 || op > 6){
+			printf("Digite umas das opcoes validas: ");
+			scanf("%d", &op);
+		}
+		switch(op){
+			case 1:
+				adiciona(contato);
+			break;
+			case 2:
+				editar(contato);
+			break;
+			case 3:
+				excluir(contato);
+			break;
+			case 4:
+				excluir_agenda(contato);
+			break;
+			case 5:
+				mostra(contato);
+			break;
+			case 6:
+				excluir_agenda(contato);
+				exit(0);
+			break;
+		}
+	}while(1);
+	return 0;
+}
+
+void excluir_agenda(agenda* contato){
+	if(vazia(contato)){
+		printf("Agenda vazia!\n");
+	}else{
+		agenda *temp = contato->prox;
+		while(temp != NULL){
+			contato->prox = temp->prox;
+			free(temp);
+			temp = contato->prox;
+		}
+	}
+	tamanho = 0;
+}
+
+void excluir(agenda* contato){
+	if(vazia(contato)){
+		printf("Agenda vazia!\n");
+		return;
+	}else{
+		mostra(contato);
+		int id;
+		printf("Qual contato quer excluir: ");
+		scanf("%d", &id);
+		agenda* temp = contato->prox;
+		agenda* anterior = contato;
+		int pos = 0;
+		while(temp->prox != NULL && pos != id){
+			anterior = anterior->prox;
+			temp = temp->prox;
+			pos++;
+		}
+		if(id <= pos){
+			if(temp->prox == NULL && id == pos){
+				anterior->prox = NULL;
+				free(temp);
+			}else{
+				anterior->prox = temp->prox;
+				free(temp);
+			}
+		}
+	}
+	tamanho--;
+}
+
+void editar(agenda* contato){
+	char nome[50], email[50], telefone[50];
+	if(vazia(contato)){
+		printf("Agenda vazia!\n");
+		return;
+	}else{
+		int id;
+		mostra(contato);
+		printf("Qual contato quer editar: ");
+		scanf("%d", &id);
+		agenda* temp = contato->prox;
+		int pos = 0;
+		while(temp->prox != NULL && pos != id){
+			temp = temp->prox;
+			pos++;
+		}
+		temp = info(temp);
+	}
+}
+
+void adiciona(agenda *contato){
+	agenda *novo = aloca();
+	if(vazia(contato)){
+		contato->prox = novo;
+	}else{
+		agenda* temp = contato->prox;
+		agenda* anterior = contato;
+		while(temp != NULL && strcmp(temp->nome, novo->nome) < 0){
+			printf("Menor: %s %s\n", temp->nome, novo->nome);
+			temp = temp->prox;
+			anterior = anterior->prox;
+		}
+		if(temp == NULL){
+			anterior->prox = novo;			
+		}else{
+			novo->prox = temp;
+			anterior->prox = novo;
+		}
+	}
+	tamanho++;
+}
+
+int vazia(agenda *contato){
+	if(contato->prox == NULL){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+void mostra(agenda *contato){
+	int pos = 0;
+	if(vazia(contato)){
+		printf("Agenda vazia!\n");
+		return;
+	}
+	agenda* temp = contato->prox;
+	while(temp != NULL){
+		printf("*******************************************************\n");
+		printf("Id: %d\n", pos);
+		printf("Nome: %s\n", temp->nome);
+		printf("E-mail: %s\n", temp->email);
+		printf("Telefone: %s\n", temp->telefone);
+		printf("*******************************************************\n\n");
+		temp = temp->prox;
+		pos++;
+	}
+}
+
+agenda *aloca(){
+	agenda *novo = (agenda*) malloc(sizeof(agenda));
+	if(!novo){
+		printf("Sem espaço!\n");
+		return;
+	}else{
+		novo = info(novo);
+		novo->prox = NULL;
+		return novo;
+	}
+}
+
+void maiuscula(char *nome){
+	int i;
+	for(i = 0; i < strlen(nome); ++i){
+		if(nome[i] > 96 && nome[i] < 123){
+			nome[i] = nome[i] - 32;
+		}
+	}
+}
+
+agenda* info(agenda* novo){
+	char nome[50], email[50], telefone[50];
+	setbuf(stdin, NULL);
+	printf("Nome: ");
+	scanf("%[^\n]s", nome);
+	maiuscula(nome);
+	strcpy(novo->nome, nome);
+	printf("E-mail: ");
+	scanf("%s", email);
+	strcpy(novo->email, email), 
+	printf("Telefone: ");
+	scanf("%s", telefone);
+	strcpy(novo->telefone, telefone);
+
+	return novo;
+}
